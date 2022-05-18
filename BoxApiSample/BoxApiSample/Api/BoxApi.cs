@@ -1,6 +1,7 @@
 ﻿using Box.V2;
 using Box.V2.Config;
 using Box.V2.JWTAuth;
+using Box.V2.Models;
 using BoxApiSample.Data;
 using System;
 using System.Collections.Generic;
@@ -32,30 +33,48 @@ namespace BoxApiSample.Api
             _client = session.AdminClient(adminToken);
         }
 
-        public async Task<List<BoxDirectory>> GetDirectories(string directoryId)
-        {
-            var items = await _client.FoldersManager.GetFolderItemsAsync(directoryId, 100);
-            return items.Entries.Select(item =>
-            {
-                return new BoxDirectory
-                {
-                    Id = item.Id,
-                    Name = item.Name,
-                };
-            }).ToList();
-        }
-
         /// <summary>
         /// 指定したフォルダの下にフォルダを作成します（深い階層でも可）
         /// </summary>
         /// <param name="directoryId">フォルダID</param>
+        /// <param name="targetDirectories">作成対象のフォルダ（各 Id は空で良い）</param>
         /// <returns>フォルダ情報のリスト（深いほど後ろに積まれる）</returns>
-        public async Task<List<BoxDirectory>> CreateDirectories(string directoryId)
+        public async Task<List<BoxDirectory>> CreateDirectories(string directoryId, List<BoxDirectory> targetDirectories)
         {
-            List<BoxDirectory> ret = null;
+            var parentId = directoryId;
+            foreach (var d in targetDirectories)
+            {
+                var folderParams = new BoxFolderRequest()
+                {
+                    Name = d.Name,
+                    Parent = new BoxRequestEntity()
+                    {
+                        Id = parentId,
+                    }
+                };
 
+                // 作成
+                // (フォルダがなかったときだけ作る）
+                // 10000 決め打ちなのはダメですが、そんな数いかないような設計にしましょう
+                var folders = await _client.FoldersManager.GetFolderItemsAsync(parentId, 10000);
+                var folder = folders.Entries.FirstOrDefault(f => f.Name == d.Name);
+                if (folder == null)
+                {
+                    Console.WriteLine("フォルダがなかったので作成します[{0}]", d.Name);
+                    folder = await _client.FoldersManager.CreateAsync(folderParams);
+                }
+                else
+                {
+                    Console.WriteLine("フォルダがあったので作成しません[{0}, ID: {1}]", d.Name, folder.Id);
+                }
 
-            return ret;
+                // 取得した ID を保持
+                d.Id = folder.Id;
+                // 作成したフォルダを親とする
+                parentId = folder.Id;
+            }
+
+            return targetDirectories;
         }
     }
 }

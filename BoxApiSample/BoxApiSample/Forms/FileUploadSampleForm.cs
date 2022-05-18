@@ -1,4 +1,5 @@
 ﻿using BoxApiSample.Api;
+using BoxApiSample.Data;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -31,12 +32,41 @@ namespace BoxApiSample.Forms
                 // 接続
                 await api.Connect();
 
-                // とりあえずルートディレクトリ（ "0" ）の内容を取り出してみる
-                var items = await api.GetDirectories("0");
-                foreach (var i in items)
-                {
-                    Console.WriteLine("{0}: {1}", i.Id, i.Name);
-                }
+
+                // 対象のフォルダに yyyy/MM/dd/HH/mm/ss というフォルダ階層を作ってみます
+                var now = DateTime.Now;
+                var directories = await api.CreateDirectories(
+                    _textBoxRootDirectoryId.Text,
+                    new List<BoxDirectory>()
+                    {
+                        new BoxDirectory
+                        {
+                            Name = now.Year.ToString("D4")
+                        },
+                        new BoxDirectory
+                        {
+                            Name = now.Month.ToString("D2")
+                        },
+                        new BoxDirectory
+                        {
+                            Name = now.Day.ToString("D2")
+                        },
+                        new BoxDirectory
+                        {
+                               Name = now.Hour.ToString("D2")
+                        },
+                        new BoxDirectory
+                        {
+                            Name = now.Minute.ToString("D2")
+                        },
+
+                        new BoxDirectory
+                        {
+                            Name = now.Second.ToString("D2")
+                        },
+
+                    });
+                Console.WriteLine("つくった");
             }
             catch (Exception ex)
             {
