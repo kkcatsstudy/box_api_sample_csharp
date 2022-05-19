@@ -5,6 +5,7 @@ using Box.V2.JWTAuth;
 using Box.V2.Models;
 using Box.V2.Utility;
 using BoxApiSample.Data;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,14 +16,39 @@ using System.Threading.Tasks;
 
 namespace BoxApiSample.Api
 {
+    /// <summary>
+    /// BOX API を使うクライアントクラス
+    /// </summary>
     public class BoxApi
     {
+        #region フィールド・プロパティ
+        /// <summary>
+        ///  ロガー
+        /// </summary>
+        Logger logger = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
+        /// BOX クライアント
+        /// </summary>
         private BoxClient _client = null;
+
+        /// <summary>
+        /// BOX 認証用 JSON ファイルのパス
+        /// </summary>
         public string ConfigJsonFile {get;set;}
 
+        /// <summary>
+        /// 再試行間隔(ms)
+        /// </summary>
         public int RetryInterval { get; set; }
-        public int RetryCount { get; set; }
 
+        /// <summary>
+        /// 再試行回数
+        /// </summary>
+        public int RetryCount { get; set; }
+        #endregion
+
+        #region 定数
         /// <summary>
         /// フォルダを一度に取得する件数の上限
         /// </summary>
@@ -33,7 +59,9 @@ namespace BoxApiSample.Api
         /// 20000000 以上にしないとダメです（※ 約20MB）
         /// </summary>
         private const int SINGLE_UPLOAD_MODE_LIMIT = 20000000; // 52428800;
+        #endregion
 
+        #region コンストラクタ
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -42,7 +70,9 @@ namespace BoxApiSample.Api
             RetryInterval = 1000;
             RetryCount = 3;
         }
+        #endregion
 
+        #region 外部向け
         /// <summary>
         /// 接続します
         /// </summary>
@@ -50,13 +80,13 @@ namespace BoxApiSample.Api
         /// <remarks>接続に失敗した場合は</remarks>
         public async Task Connect()
         {
-            Console.WriteLine("BOX API の認証を行います");
+            logger.Info("BOX API の認証を行います");
             var jsonConfig = File.ReadAllText(ConfigJsonFile, Encoding.UTF8);
             var config = BoxConfigBuilder.CreateFromJsonString(jsonConfig).Build();
             var session = new BoxJWTAuth(config);
             var adminToken = await session.AdminTokenAsync(); //valid for 60 minutes so should be cached and re-used
             _client = session.AdminClient(adminToken);
-            Console.WriteLine("BOX API の認証 OK でした");
+            logger.Info("  -> BOX API の認証 OK でした");
         }
 
         /// <summary>
@@ -87,13 +117,13 @@ namespace BoxApiSample.Api
                 var folder = folders.Entries.FirstOrDefault(f => f.Name == targetFolder.Name);
                 if (folder == null)
                 {
-                    Console.WriteLine("フォルダがなかったので作成します[{0}]", targetFolder.Name);
+                    logger.Info("フォルダがなかったので作成します[{0}]", targetFolder.Name);
                     folder = await CreateFolderAsyncWithRetry(folderParams);
-                    Console.WriteLine("フォルダがなかったので作成しました[{0}, ID: {1}]", targetFolder.Name, folder.Id);
+                    logger.Info("  -> フォルダがなかったので作成しました[{0}, ID: {1}]", targetFolder.Name, folder.Id);
                 }
                 else
                 {
-                    Console.WriteLine("フォルダがあったので作成しません[{0}, ID: {1}]", targetFolder.Name, folder.Id);
+                    logger.Info("フォルダがあったので作成しません[{0}, ID: {1}]", targetFolder.Name, folder.Id);
                 }
 
                 // 取得した ID を保持
@@ -145,11 +175,12 @@ namespace BoxApiSample.Api
                     Name = Path.GetFileName(file),
                     Parent = new BoxFolderRequest { Id = targetId }
                 };
-                Console.WriteLine("ファイルをアップロードします[{0}]", fileReq.Name);
+                logger.Info("ファイルをアップロードします[{0}]", fileReq.Name);
                 var fileRes = await UploadFileAsyncWithRetry(fileReq, file);
-                Console.WriteLine("ファイルをアップロードしました[{0}, ID: {1}]", fileReq.Name, fileRes.Id);
+                logger.Info("  -> ファイルをアップロードしました[{0}, ID: {1}]", fileReq.Name, fileRes.Id);
             }
         }
+        #endregion
 
         #region API ラッパー
         /// <summary>
@@ -192,7 +223,7 @@ namespace BoxApiSample.Api
                 {
                     try
                     {
-                        Console.WriteLine("セッションが切れたので再接続します。");
+                        logger.Warn("セッションが切れたので再接続します。");
                         await Connect();
                     }
                     catch (ThreadAbortException ae)
@@ -208,7 +239,7 @@ namespace BoxApiSample.Api
                 
                 if (i < RetryCount)
                 {
-                    Console.WriteLine("フォルダ一覧の取得をリトライします。{0}回目。", i + 1);
+                    logger.Warn("フォルダ一覧の取得をリトライします。{0}回目。", i + 1);
                     Thread.Sleep(RetryInterval);
                 }
             }
@@ -260,7 +291,7 @@ namespace BoxApiSample.Api
                 {
                     try
                     {
-                        Console.WriteLine("セッションが切れたので再接続します。");
+                        logger.Warn("セッションが切れたので再接続します。");
                         await Connect();
                     }
                     catch (ThreadAbortException ae)
@@ -276,7 +307,7 @@ namespace BoxApiSample.Api
 
                 if (i < RetryCount)
                 {
-                    Console.WriteLine("フォルダ作成をリトライします。{0}回目。", i + 1);
+                    logger.Warn("フォルダ作成をリトライします。{0}回目。", i + 1);
                     Thread.Sleep(RetryInterval);
                 }
             }
@@ -314,7 +345,7 @@ namespace BoxApiSample.Api
                         // 50MB(=52428800Byte)を超えるかどうかで呼び出しを変えています
                         if (filesize >= SINGLE_UPLOAD_MODE_LIMIT)
                         {
-                            var progress = new Progress<BoxProgress>(val => { Console.WriteLine("{0}をアップロード中・・・ {1}%", req.Name, val.progress); });
+                            var progress = new Progress<BoxProgress>(val => { logger.Info("{0}をアップロード中・・・ {1}%", req.Name, val.progress); });
                             ret = await _client.FilesManager.UploadUsingSessionAsync(file, req.Name, req.Parent.Id, null, progress);
                         }
                         else
@@ -343,7 +374,7 @@ namespace BoxApiSample.Api
                 {
                     try
                     {
-                        Console.WriteLine("セッションが切れたので再接続します。");
+                        logger.Warn("セッションが切れたので再接続します。");
                         await Connect();
                     }
                     catch (ThreadAbortException ae)
@@ -359,7 +390,7 @@ namespace BoxApiSample.Api
 
                 if (i < RetryCount)
                 {
-                    Console.WriteLine("ファイルアップロードをリトライします。{0}回目。", i + 1);
+                    logger.Warn("ファイルアップロードをリトライします。{0}回目。", i + 1);
                     Thread.Sleep(RetryInterval);
                 }
             }
