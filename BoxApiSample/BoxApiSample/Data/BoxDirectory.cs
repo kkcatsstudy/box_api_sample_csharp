@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BoxApiSample.Data
 {
-    public class BoxDirectory
+    public class BoxFolderItem
     {
         public string Id { get; set; }
         public string Name { get; set; }

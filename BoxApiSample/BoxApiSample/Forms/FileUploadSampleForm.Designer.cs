@@ -38,6 +38,7 @@
             this._buttonUploadDirectoryRef = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this._buttonUpload = new System.Windows.Forms.Button();
+            this._uploadProgressBar = new System.Windows.Forms.ProgressBar();
             ((System.ComponentModel.ISupportInitialize)(this._pictureBoxRootDirectoryId)).BeginInit();
             this.SuspendLayout();
             // 
@@ -49,6 +50,7 @@
             this.button1.TabIndex = 0;
             this.button1.Text = "button1";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Visible = false;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // _textBoxRootDirectoryId
@@ -133,12 +135,23 @@
             this._buttonUpload.TabIndex = 9;
             this._buttonUpload.Text = "アップロード！！";
             this._buttonUpload.UseVisualStyleBackColor = true;
+            this._buttonUpload.Click += new System.EventHandler(this._buttonUpload_Click);
+            // 
+            // _uploadProgressBar
+            // 
+            this._uploadProgressBar.Location = new System.Drawing.Point(462, 469);
+            this._uploadProgressBar.Name = "_uploadProgressBar";
+            this._uploadProgressBar.Size = new System.Drawing.Size(242, 40);
+            this._uploadProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Marquee;
+            this._uploadProgressBar.TabIndex = 10;
+            this._uploadProgressBar.Visible = false;
             // 
             // FileUploadSampleForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(736, 529);
+            this.Controls.Add(this._uploadProgressBar);
             this.Controls.Add(this._buttonUpload);
             this.Controls.Add(this.label1);
             this.Controls.Add(this._buttonUploadDirectoryRef);
@@ -172,6 +185,7 @@
         private System.Windows.Forms.Button _buttonUploadDirectoryRef;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button _buttonUpload;
+        private System.Windows.Forms.ProgressBar _uploadProgressBar;
     }
 }
 
