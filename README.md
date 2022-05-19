@@ -1,7 +1,9 @@
-# BOX API ‚ðŽg‚Á‚½ƒTƒ“ƒvƒ‹iC#j
+# BOX API ã‚’ä½¿ã£ãŸã‚µãƒ³ãƒ—ãƒ«ï¼ˆC#ï¼‰
 
-## “®‚©‚µ•û
+## å‹•ã‹ã—æ–¹
 
-ƒrƒ‹ƒh‚µ‚Ä BoxApiSample.exe ‚ðŽÀs‚µ‚Ä‚­‚¾‚³‚¢B
-‚»‚ÌÛAexe ‚Æ“¯‚¶êŠ‚É `box_config.json` ‚Æ‚¢‚¤ƒtƒ@ƒCƒ‹‚ð’u‚­•K—v‚ª‚ ‚è‚Ü‚·B
-json ƒtƒ@ƒCƒ‹‚Ìì¬•û–@‚ÍAhttps://kkcats.notion.site/C-BOX-API-e0224810a8bd44bfa195261e918aecdc ‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+ãƒ“ãƒ«ãƒ‰ã—ã¦ BoxApiSample.exe ã‚’å®Ÿè¡Œã—ã¦ãã ã•ã„ã€‚
+
+ãã®éš›ã€exe ã¨åŒã˜å ´æ‰€ã« `box_config.json` ã¨ã„ã†ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ç½®ãå¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚
+
+json ãƒ•ã‚¡ã‚¤ãƒ«ã®ä½œæˆæ–¹æ³•ã¯ã€https://kkcats.notion.site/C-BOX-API-e0224810a8bd44bfa195261e918aecdc ã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
